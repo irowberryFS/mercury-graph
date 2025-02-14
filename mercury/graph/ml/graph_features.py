@@ -96,7 +96,7 @@ class GraphFeatures(BaseClass):
 
         # Get parameters
         edges = g.graphframe.edges
-        vertices = g.graphframe.nodes
+        vertices = g.graphframe.vertices
         attributes = self.attributes
         agg_funcs = self.agg_funcs
         order = self.order
@@ -104,6 +104,15 @@ class GraphFeatures(BaseClass):
         checkpoint = self.checkpoint
         checkpoint_dir = self.checkpoint_dir
         spark = self.spark
+
+        # Dictionary that maps agg_funcs to sql functions
+        _agg_dict = {
+            'sum': F.sum,
+            'min': F.min,
+            'max': F.max,
+            'avg': F.avg,
+            'wavg': F.sum
+        }
 
         # Verify attributes
         if attributes is None:
@@ -149,14 +158,6 @@ class GraphFeatures(BaseClass):
                 f'{type(spark).__name__} instead.'
             )
 
-        # Dictionary that maps agg_funcs to sql functions
-        _agg_dict = {
-            'sum': F.sum,
-            'min': F.min,
-            'max': F.max,
-            'avg': F.avg,
-            'wavg': F.sum
-        }
         # Fetch neighbors
         neighs = self._get_neighbors(
             edges,

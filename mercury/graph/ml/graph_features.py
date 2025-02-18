@@ -1,22 +1,21 @@
-from mercury.graph.core.base import BaseClass
-from mercury.graph.core import Graph
-from mercury.graph.core.spark_interface import pyspark_installed, SparkInterface
-
-
-# Imports for framework
 import warnings
 from itertools import product
 from typing import Union, List
+from mercury.graph.core.base import BaseClass
+from mercury.graph.core import Graph
+from mercury.graph.core.spark_interface import pyspark_installed
 
 # Pyspark imports
 if pyspark_installed:
     from pyspark.sql import functions as F, Window as W, DataFrame, SparkSession
     # Use these to verify attribute data types
     from pyspark.sql.types import (
-        ByteType, ShortType, IntegerType, LongType, 
+        ByteType, ShortType, IntegerType, LongType,
         FloatType, DoubleType, DecimalType
     )
 
+
+# Main class to be fitted
 class GraphFeatures(BaseClass):
     def __init__(
             self,
@@ -47,8 +46,8 @@ class GraphFeatures(BaseClass):
                 2 for neighbors of neighbors, etc.). It must be a positive integer.
                 Default is 1.
             verify : bool, optional
-                Whether to validate the provided parameters before executing the algorithm.
-                Default is False.
+                Whether to validate the provided parameters before executing the
+                algorithm. Default is False.
             checkpoint : bool, optional
                 Whether to use Spark checkpointing to persist intermediate results.
                 Default is False.
@@ -72,14 +71,14 @@ class GraphFeatures(BaseClass):
             product of attribute values and edge weights, normalized by the total
             weight.
         """
-        
+
         self.attributes = attributes
-        self.agg_funcs  = agg_funcs
+        self.agg_funcs = agg_funcs
         self.order = order
         self.verify = verify
         self.checkpoint = checkpoint
         self.checkpoint_dir = checkpoint_dir
-        self.spark = spark 
+        self.spark = spark
 
     def _str_(self):
         pass
@@ -330,7 +329,6 @@ class GraphFeatures(BaseClass):
                 'float', 'double', 'tinyint', 'smallint', 'int', 'bigint'
             ), msg.format(dtype)
 
-
     # Fetches all the neighbors of each node in edges
     def _get_neighbors(
         self,
@@ -451,6 +449,3 @@ class GraphFeatures(BaseClass):
                 ret = ret_tmp
         # Return
         return ret
-
-
-    

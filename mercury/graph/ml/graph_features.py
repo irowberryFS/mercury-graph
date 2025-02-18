@@ -1,3 +1,4 @@
+# Imports
 import warnings
 from itertools import product
 from typing import Union, List
@@ -8,7 +9,6 @@ from mercury.graph.core.spark_interface import pyspark_installed
 # Pyspark imports
 if pyspark_installed:
     from pyspark.sql import functions as F, Window as W, DataFrame, SparkSession
-    # Use these to verify attribute data types
     from pyspark.sql.types import (
         ByteType, ShortType, IntegerType, LongType,
         FloatType, DoubleType, DecimalType
@@ -26,15 +26,16 @@ class GraphFeatures(BaseClass):
             checkpoint: bool = False,
             checkpoint_dir: str = None,
             spark: SparkSession = None,
-            ):
+        ):
         """Aggregate attributes from neighboring nodes.
 
         Args:
             attributes : str or List[str], optional
-                The node attributes to aggregate. If None, all columns but 'id' in
-                'vertices' are used. Default is None.
+                The node attributes used to generate features. These strings must be
+                valid column names 'vertices'. If None, all columns except for 'id'
+                are used. Default is None.
             agg_funcs : str or List[str], optional
-                The aggregation functions to apply. Supported values are:
+                The aggregation function(s) to apply. Supported values are:
                 - "sum"
                 - "min"
                 - "max"
@@ -58,11 +59,6 @@ class GraphFeatures(BaseClass):
                 The active Spark session. Required if `checkpoint=True`. Default is
                 None.
 
-        Returns:
-            DataFrame
-                A Spark DataFrame with the aggregated attributes for each node. The
-                column names follow the format `<attribute>_<agg_func>`.
-
         Notes:
             - The `order` parameter specifies the depth of the neighborhood
             considered  during aggregation.
@@ -71,7 +67,6 @@ class GraphFeatures(BaseClass):
             product of attribute values and edge weights, normalized by the total
             weight.
         """
-
         self.attributes = attributes
         self.agg_funcs = agg_funcs
         self.order = order
@@ -85,12 +80,13 @@ class GraphFeatures(BaseClass):
 
     # Aggregate messages from neighbors
     def fit(self, g: Graph):
-        """
+        """Fit the GraphFeatures object to generate graph-based features.
+
         Args:
             g (Graph): A mercury graph structure.
 
         Returns:
-            (self): Fitted self (or raises an error).
+            (self): Fitted self with 'node_features_' attribute (or raises an error).
         """
 
         # Get parameters

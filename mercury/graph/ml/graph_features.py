@@ -75,7 +75,7 @@ class GraphFeatures(BaseClass):
         self.checkpoint_dir = checkpoint_dir
         self.spark = spark
 
-    def _str_(self):
+    def __str__(self):
         pass
 
     # Aggregate messages from neighbors

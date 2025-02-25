@@ -53,7 +53,7 @@ def test_verify_vertices_non_numeric_error():
 
 
 # _verify_edges (expected to pass)
-def test_verify_edges_success():
+def test_verify_vertices_success():
     try:
         gf._verify_vertices(v.select("id", "x3"))
     except AssertionError:
@@ -98,8 +98,8 @@ def test_verify_edges_directed_graph():
         gf._verify_edges(
             e.unionByName(
                 e.select(F.col("dst").alias("src"), F.col("src").alias("dst"))
+            )
         )
-    )
 
 
 # _verify_edges (expected to pass)
@@ -108,6 +108,7 @@ def test_verify_edges_success():
         gf._verify_edges(e)
     except AssertionError:
         pytest.fail("Valid edges raised an unexpected AssertionError.")
+
 
 @pytest.fixture
 def dataset1():
@@ -265,7 +266,10 @@ def dataset6():
     return dataset
 
 
-@pytest.mark.parametrize('dataset_fixture', ['dataset1', 'dataset2', 'dataset3', 'dataset4'])
+@pytest.mark.parametrize(
+    'dataset_fixture',
+    ['dataset1', 'dataset2', 'dataset3', 'dataset4']
+)
 @pytest.mark.parametrize('order_value,expected_error', [
     (-1, 'ge'),  # Error order must be greater than 0
     (0, 'ge'),  # Error order must be greater than 0
@@ -285,13 +289,19 @@ def test_get_neighbors_order_warns(
 ):
     dataset = request.getfixturevalue(dataset_fixture)
     if expected_error == 'ge':
-        with pytest.raises(AssertionError, match='order must be an integer greater than 0.'):
+        with pytest.raises(
+            AssertionError,
+            match='order must be an integer greater than 0.'
+        ):
             get_neighbors(dataset, order=order_value)
     elif expected_error == 'ie':
         with pytest.raises(AssertionError, match='order must be an integer.'):
             get_neighbors(dataset, order=order_value)
     elif expected_error == 'wr':
-        with pytest.warns(UserWarning, match=f'order={order_value} may cause the process to be slow.'):
+        with pytest.warns(
+            UserWarning,
+            match=f'order={order_value} may cause the process to be slow.'
+        ):
             get_neighbors(dataset, order=order_value)
     else:
         with warnings.catch_warnings(record=True) as w:
@@ -300,12 +310,15 @@ def test_get_neighbors_order_warns(
         assert len(w) == 0
 
 
-@pytest.mark.parametrize('dataset_fixture_edges', ['dataset1', 'dataset2', 'dataset3', 'dataset4'])
+@pytest.mark.parametrize(
+    'dataset_fixture_edges',
+    ['dataset1', 'dataset2', 'dataset3', 'dataset4']
+)
 @pytest.mark.parametrize('dataset_fixture_vertices', ['dataset5', 'dataset6'])
 @pytest.mark.parametrize('attributes,expected_error', [
     (5, 'lse'),  # Error attributes must be a list of strings
     ([5, 'age'], 'aise'),  # Error all items in attributes must be strings
-    (['age', 'income', 'other'], 'aiee'),  # Error all items in attributes must exist in vertices
+    (['age', 'income', 'other'], 'aiee'),  # All items in attrs must exist in vertices
     (['age', 'income', 'is_bad'], 'no'),  # No error expected
 ])
 def test_aggregate_messages_attr_warns(
@@ -318,13 +331,22 @@ def test_aggregate_messages_attr_warns(
     edges = request.getfixturevalue(dataset_fixture_edges)
     vertices = request.getfixturevalue(dataset_fixture_vertices)
     if expected_error == 'lse':
-        with pytest.raises(AssertionError, match='attributes must be a list of strings.'):
+        with pytest.raises(
+            AssertionError,
+            match='attributes must be a list of strings.'
+        ):
             aggregate_messages(edges, vertices, attributes=attributes)
     elif expected_error == 'aise':
-        with pytest.raises(AssertionError, match='All items in attributes must be strings.'):
+        with pytest.raises(
+            AssertionError,
+            match='All items in attributes must be strings.'
+        ):
             aggregate_messages(edges, vertices, attributes=attributes)
     elif expected_error == 'aiee':
-        with pytest.raises(AssertionError, match='All items in attributes must exist in vertices.'):
+        with pytest.raises(
+            AssertionError,
+            match='All items in attributes must exist in vertices.'
+        ):
             aggregate_messages(edges, vertices, attributes=attributes)
     else:
         with warnings.catch_warnings(record=True) as w:
@@ -333,7 +355,10 @@ def test_aggregate_messages_attr_warns(
         assert len(w) == 0
 
 
-@pytest.mark.parametrize('dataset_fixture_edges', ['dataset1', 'dataset2', 'dataset3', 'dataset4'])
+@pytest.mark.parametrize(
+    'dataset_fixture_edges',
+    ['dataset1', 'dataset2', 'dataset3', 'dataset4']
+)
 @pytest.mark.parametrize('dataset_fixture_vertices', ['dataset5', 'dataset6'])
 @pytest.mark.parametrize('functions,expected_error', [
     ('mode', 'yes'),  # Error invalid aggregate function

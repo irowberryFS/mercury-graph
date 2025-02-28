@@ -281,7 +281,7 @@ class GraphFeatures(BaseClass):
                 )
 
     # Check edges' integrity
-    def _verify_edges(self, edges):
+    def _verify_edges(self, edges: DataFrame):
         # Check type
         msg = 'edges must be a PySpark DataFrame.'
         assert isinstance(edges, DataFrame), msg
@@ -333,11 +333,11 @@ class GraphFeatures(BaseClass):
     # Fetches all the neighbors of each node in edges
     def _get_neighbors(
         self,
-        edges,
-        order,
-        checkpoint,
-        checkpoint_dir,
-        spark,
+        edges: DataFrame,
+        order: int = 1,
+        checkpoint: bool = False,
+        checkpoint_dir: str = None,
+        spark: SparkSession = None,
     ):
         """Fetch all the neighbors of each node in a graph up to specific order.
 

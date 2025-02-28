@@ -6,10 +6,22 @@ from mercury.graph.ml.graph_features import GraphFeatures
 
 # Init spark if available
 if pyspark_installed:
+    import os
+    os.environ["JAVA_HOME"] = "/Users/mi20371/homebrew/opt/openjdk@11"
+    os.environ["SPARK_HOME"] = "/Users/mi20371/miniconda3/envs/contribenv/lib/python3.9/site-packages/pyspark"  # Configura la ruta correcta a Spark
+    os.environ["PYSPARK_PYTHON"] = "/Users/mi20371/miniconda3/envs/contribenv/bin/python"
+    os.environ["PYSPARK_DRIVER_PYTHON"] ="/Users/mi20371/miniconda3/envs/contribenv/bin/python"
+
     from pyspark.context import SparkContext
     from pyspark.sql import SparkSession
-    sc = SparkContext.getOrCreate()
-    spark = SparkSession(sc)
+    #sc = SparkContext.getOrCreate()
+
+    spark = SparkSession.builder \
+        .appName("GraphFrames Example") \
+        .config("spark.jars.packages", "graphframes:graphframes:0.8.2-spark3.0-s_2.12") \
+        .getOrCreate()
+
+    #spark = SparkSession(sc)
     from pyspark.sql.types import (
         StructType,
         StructField,
@@ -26,14 +38,15 @@ v = spark.createDataFrame(
         StructField("id", IntegerType(), False),
         StructField("x1", IntegerType(), True),
         StructField("x2", StringType(), True),
-        StructField("x3", StringType(), True)
+        StructField("x3", IntegerType(), True)
     ])
 )
 e = spark.createDataFrame(
-    [(0, 1, 1)],
+    [(0, 1, 1.0)],
     schema=StructType([
         StructField("src", IntegerType(), False),
         StructField("dst", IntegerType(), True),
+        StructField('weight', FloatType(), True)
     ])
 )
 gf = GraphFeatures()
@@ -64,7 +77,7 @@ def test_verify_vertices_success():
 # _verify_edges src
 def test_verify_edges_src():
     with pytest.raises(AssertionError, match='Expected column "src" not in edges'):
-        gf._verify_edges(e.select(F.col("src").alias("source")), "dst")
+        gf._verify_edges(e.select(F.col("src").alias("source"), "dst"))
 
 
 # _verify_edges dst
@@ -96,10 +109,17 @@ def test_verify_edges_directed_graph():
         AssertionError,
         match="edges has mirrored edges. Directed graphs are not yet supported!",
     ):
-        gf._verify_edges(
+        e_tmp = (
             e.unionByName(
-                e.select(F.col("dst").alias("src"), F.col("src").alias("dst"))
+                e.select(
+                    F.col("dst").alias("src"), 
+                    F.col("src").alias("dst"),
+                    F.col("weight").alias("weight")
+                )
             )
+        )
+        gf._verify_edges(
+            e_tmp
         )
 
 

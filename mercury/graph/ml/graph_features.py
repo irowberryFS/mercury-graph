@@ -8,7 +8,12 @@ from mercury.graph.core.spark_interface import pyspark_installed
 
 # Pyspark imports
 if pyspark_installed:
-    from pyspark.sql import functions as F, Window as W, DataFrame, SparkSession
+    from pyspark.sql import (
+        functions as F, 
+        Window as W, 
+        DataFrame, 
+        SparkSession
+    )
     from pyspark.sql.types import (
         ByteType, ShortType, IntegerType, LongType,
         FloatType, DoubleType, DecimalType

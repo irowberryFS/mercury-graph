@@ -1,15 +1,8 @@
 import pytest
 import warnings
+from mercury.graph.core import Graph
 from mercury.graph.core.spark_interface import pyspark_installed
 from mercury.graph.ml.graph_features import GraphFeatures
-from pyspark.sql.types import (
-    StructType,
-    StructField,
-    StringType,
-    IntegerType,
-    FloatType
-)
-from pyspark.sql import functions as F
 
 # Init spark if available
 if pyspark_installed:
@@ -17,6 +10,14 @@ if pyspark_installed:
     from pyspark.sql import SparkSession
     sc = SparkContext.getOrCreate()
     spark = SparkSession(sc)
+    from pyspark.sql.types import (
+        StructType,
+        StructField,
+        StringType,
+        IntegerType,
+        FloatType
+    )
+    from pyspark.sql import functions as F
 
 # Declare vertices, edges and GraphFeatures instance
 v = spark.createDataFrame(
@@ -116,21 +117,22 @@ def dataset1():
         spark
         .createDataFrame(
             [
-                (1, 2),
-                (1, 3),
-                (1, 4),
-                (2, 3),
-                (2, 4),
-                (3, 4),
-                (3, 5),
-                (4, 5),
-                (4, 6),
-                (5, 6),
-                (6, 7)
+                (1, 2, 1.0),
+                (1, 3, 1.0),
+                (1, 4, 1.0),
+                (2, 3, 1.0),
+                (2, 4, 1.0),
+                (3, 4, 1.0),
+                (3, 5, 1.0),
+                (4, 5, 1.0),
+                (4, 6, 1.0),
+                (5, 6, 1.0),
+                (6, 7, 1.0)
             ],
             schema=StructType([
                 StructField('src', StringType(), False),
                 StructField('dst', StringType(), False),
+                StructField('weight', FloatType(), True)
             ])
         )
     )
@@ -171,16 +173,17 @@ def dataset3():
         spark
         .createDataFrame(
             [
-                (1, 2),
-                (2, 3),
-                (3, 1),
-                (4, 5),
-                (5, 4),
-                (6, 6)
+                (1, 2, 1.0),
+                (2, 3, 1.0),
+                (3, 1, 1.0),
+                (4, 5, 1.0),
+                (5, 4, 1.0),
+                (6, 6, 1.0)
             ],
             schema=StructType([
                 StructField('src', StringType(), False),
-                StructField('dst', StringType(), False)
+                StructField('dst', StringType(), False),
+                StructField('weight', FloatType(), True)
             ])
         )
     )
@@ -293,20 +296,20 @@ def test_get_neighbors_order_warns(
             AssertionError,
             match='order must be an integer greater than 0.'
         ):
-            get_neighbors(dataset, order=order_value)
+            gf._get_neighbors(dataset, order=order_value)
     elif expected_error == 'ie':
         with pytest.raises(AssertionError, match='order must be an integer.'):
-            get_neighbors(dataset, order=order_value)
+            gf._get_neighbors(dataset, order=order_value)
     elif expected_error == 'wr':
         with pytest.warns(
             UserWarning,
             match=f'order={order_value} may cause the process to be slow.'
         ):
-            get_neighbors(dataset, order=order_value)
+            gf._get_neighbors(dataset, order=order_value)
     else:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
-            get_neighbors(dataset, order=order_value)
+            gf._get_neighbors(dataset, order=order_value)
         assert len(w) == 0
 
 
@@ -330,28 +333,41 @@ def test_aggregate_messages_attr_warns(
 ):
     edges = request.getfixturevalue(dataset_fixture_edges)
     vertices = request.getfixturevalue(dataset_fixture_vertices)
+    g = Graph(
+        data=edges,
+        nodes=vertices,
+        keys={
+            "src": "src",
+            "dst": "dst",
+            "weight": "weight",
+            }
+        )
     if expected_error == 'lse':
         with pytest.raises(
             AssertionError,
             match='attributes must be a list of strings.'
         ):
-            aggregate_messages(edges, vertices, attributes=attributes)
+            gf = GraphFeatures(attributes=attributes)
+            gf.fit(g)
     elif expected_error == 'aise':
         with pytest.raises(
             AssertionError,
             match='All items in attributes must be strings.'
         ):
-            aggregate_messages(edges, vertices, attributes=attributes)
+            gf = GraphFeatures(attributes=attributes)
+            gf.fit(g)
     elif expected_error == 'aiee':
         with pytest.raises(
             AssertionError,
             match='All items in attributes must exist in vertices.'
         ):
-            aggregate_messages(edges, vertices, attributes=attributes)
+            gf = GraphFeatures(attributes=attributes)
+            gf.fit(g)
     else:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
-            aggregate_messages(edges, vertices, attributes=attributes)
+            gf = GraphFeatures(attributes=attributes)
+            gf.fit(g)
         assert len(w) == 0
 
 
@@ -373,13 +389,24 @@ def test_aggregate_messages_aggf_warns(
 ):
     edges = request.getfixturevalue(dataset_fixture_edges)
     vertices = request.getfixturevalue(dataset_fixture_vertices)
+    g = Graph(
+        data=edges,
+        nodes=vertices,
+        keys={
+            "src": "src",
+            "dst": "dst",
+            "weight": "weight",
+            }
+        )
     msg = 'Invalid aggregation function. Please provide one or more of ' \
         'the following valid options: "sum", "min", "max", "avg" or "wavg".'
     if expected_error == 'yes':
         with pytest.raises(AssertionError, match=msg):
-            aggregate_messages(edges, vertices, agg_funcs=functions)
+            gf = GraphFeatures(agg_funcs=functions)
+            gf.fit(g)
     else:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
-            aggregate_messages(edges, vertices, agg_funcs=functions)
+            gf = GraphFeatures(agg_funcs=functions)
+            gf.fit(g)
         assert len(w) == 0

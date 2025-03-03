@@ -1,3 +1,4 @@
+import os
 import pytest
 import warnings
 from mercury.graph.core import Graph
@@ -6,22 +7,10 @@ from mercury.graph.ml.graph_features import GraphFeatures
 
 # Init spark if available
 if pyspark_installed:
-    import os
-    os.environ["JAVA_HOME"] = "/Users/mi20371/homebrew/opt/openjdk@11"
-    os.environ["SPARK_HOME"] = "/Users/mi20371/miniconda3/envs/contribenv/lib/python3.9/site-packages/pyspark"  # Configura la ruta correcta a Spark
-    os.environ["PYSPARK_PYTHON"] = "/Users/mi20371/miniconda3/envs/contribenv/bin/python"
-    os.environ["PYSPARK_DRIVER_PYTHON"] ="/Users/mi20371/miniconda3/envs/contribenv/bin/python"
-
     from pyspark.context import SparkContext
     from pyspark.sql import SparkSession
-    #sc = SparkContext.getOrCreate()
-
-    spark = SparkSession.builder \
-        .appName("GraphFrames Example") \
-        .config("spark.jars.packages", "graphframes:graphframes:0.8.2-spark3.0-s_2.12") \
-        .getOrCreate()
-
-    #spark = SparkSession(sc)
+    sc = SparkContext.getOrCreate()
+    spark = SparkSession(sc)
     from pyspark.sql.types import (
         StructType,
         StructField,

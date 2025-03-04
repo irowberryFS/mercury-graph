@@ -9,9 +9,9 @@ from mercury.graph.core.spark_interface import pyspark_installed
 # Pyspark imports
 if pyspark_installed:
     from pyspark.sql import (
-        functions as F, 
-        Window as W, 
-        DataFrame, 
+        functions as F,
+        Window as W,
+        DataFrame,
         SparkSession
     )
     from pyspark.sql.types import (
@@ -22,23 +22,13 @@ if pyspark_installed:
 
 # Main class to be fitted
 class GraphFeatures(BaseClass):
-    def __init__(
-            self,
-            attributes: Union[str, List[str]] = None,
-            agg_funcs: Union[str, List[str]] = 'avg',
-            order: int = 1,
-            verify: bool = False,
-            checkpoint: bool = False,
-            checkpoint_dir: str = None,
-            spark: SparkSession = None,
-        ):
-        """Aggregate attributes from neighboring nodes.
+    """Aggregate attributes from neighboring nodes.
 
         Args:
             attributes : str or List[str], optional
-                The node attributes used to generate features. These strings must be
-                valid column names 'vertices'. If None, all columns except for 'id'
-                are used. Default is None.
+                The node attributes used to generate features. These strings
+                must be valid column names in 'vertices'. If None, all columns
+                except for 'id' are used. Default is None.
             agg_funcs : str or List[str], optional
                 The aggregation function(s) to apply. Supported values are:
                 - "sum"
@@ -48,30 +38,42 @@ class GraphFeatures(BaseClass):
                 - "wavg"
                 Default is "avg".
             order : int, optional
-                The order of neighbors to compute (e.g., 1 for immediate neighbors,
-                2 for neighbors of neighbors, etc.). It must be a positive integer.
-                Default is 1.
+                The order of neighbors to compute (e.g., 1 for immediate
+                neighbors, 2 for neighbors of neighbors, etc.). It must be a
+                positive integer. Default is 1.
             verify : bool, optional
-                Whether to validate the provided parameters before executing the
-                algorithm. Default is False.
+                Whether to validate the provided parameters before executing
+                the algorithm. Default is False.
             checkpoint : bool, optional
-                Whether to use Spark checkpointing to persist intermediate results.
-                Default is False.
+                Whether to use Spark checkpointing to persist intermediate
+                results. Default is False.
             checkpoint_dir : str, optional,
-                The directory to store checkpoint files if checkpointing is enabled.
-                Required if `checkpoint=True`. Default is None.
+                The directory to store checkpoint files if checkpointing is
+                enabled. Required if `checkpoint=True`. Default is None.
             spark : SparkSession, optional
-                The active Spark session. Required if `checkpoint=True`. Default is
-                None.
+                The active Spark session. Required if `checkpoint=True`.
+                Default is None.
 
         Notes:
             - The `order` parameter specifies the depth of the neighborhood
             considered  during aggregation.
             - If `wavg` is specified in `agg_funcs`, the `edges` DataFrame must
             include a 'weight' column. Weighted averages are computed as the
-            product of attribute values and edge weights, normalized by the total
-            weight.
+            product of attribute values and edge weights, normalized by the
+            total weight.
         """
+
+    def __init__(
+            self,
+            attributes: Union[str, List[str]] = None,
+            agg_funcs: Union[str, List[str]] = 'avg',
+            order: int = 1,
+            verify: bool = False,
+            checkpoint: bool = False,
+            checkpoint_dir: str = None,
+            spark: SparkSession = None,
+    ):
+
         self.attributes = attributes
         self.agg_funcs = agg_funcs
         self.order = order
@@ -91,7 +93,8 @@ class GraphFeatures(BaseClass):
             g (Graph): A mercury graph structure.
 
         Returns:
-            (self): Fitted self with 'node_features_' attribute (or raises an error).
+            (self): Fitted self with 'node_features_' attribute (or raises an
+                    error).
         """
 
         # Get parameters
@@ -126,13 +129,15 @@ class GraphFeatures(BaseClass):
             assert all(isinstance(item, str) for item in attributes), msg
             msg = 'All items in attributes must exist in vertices.'
             assert all(item in vertices.columns for item in attributes), msg
-            msg = 'attributes must only contain attributes ("id" was detected).'
+            msg = 'attributes must only contain attributes ("id" was \
+                detected).'
             assert 'id' not in attributes, msg
 
         # Verify aggregation functions
         agg_funcs = [agg_funcs] if isinstance(agg_funcs, str) else agg_funcs
         msg = 'Invalid aggregation function. Please provide one or more of ' \
-            'the following valid options: "sum", "min", "max", "avg" or "wavg".'
+            'the following valid options: "sum", "min", "max", "avg" or \
+            "wavg".'
         assert all([func in _agg_dict.keys() for func in agg_funcs]), msg
 
         # Verify vertices
@@ -150,11 +155,13 @@ class GraphFeatures(BaseClass):
                 'spark must be provided when checkpoint is True.'
             )
             assert isinstance(checkpoint_dir, str), (
-                f'Invalid type for checkpoint_dir: expected str (a valid path), but'
+                f'Invalid type for checkpoint_dir: expected str (a valid \
+                path), but'
                 f' got {type(checkpoint_dir).__name__} instead.'
             )
             assert isinstance(spark, SparkSession), (
-                f'Invalid type for spark: expected SparkSession instance, but got '
+                f'Invalid type for spark: expected SparkSession instance, \
+                but got '
                 f'{type(spark).__name__} instead.'
             )
 
@@ -187,7 +194,8 @@ class GraphFeatures(BaseClass):
         if 'wavg' in agg_funcs:
             ret = ret.select(
                 F.expr('*'),
-                *[(F.col(x) * F.col('weight')).alias('w_' + x) for x in attributes]
+                *[(F.col(x) * F.col('weight')).alias('w_' + x)
+                  for x in attributes]
             )
 
         # Combine functions and attributes
@@ -215,6 +223,19 @@ class GraphFeatures(BaseClass):
 
     # Check vertices integrity
     def _verify_vertices(self, vertices: DataFrame):
+        """Validates the integrity of the 'vertices' DataFrame for graph
+           processing. This function verifies the presence of an 'id' column,
+           ensures that the 'id' column contains unique values, checks that
+           all other columns contain numeric data types only, and identifies
+           any null values in non-'id' columns.
+
+        Args:
+            vertices : DataFrame
+                A PySpark DataFrame representing vertices in a graph.
+
+        Returns:
+            None
+        """
 
         # Check type
         msg = 'vertices must be a PySpark DataFrame.'
@@ -282,6 +303,20 @@ class GraphFeatures(BaseClass):
 
     # Check edges' integrity
     def _verify_edges(self, edges: DataFrame):
+        """Validates the integrity of the 'edges' DataFrame for graph
+           processing. This function verifies the presence of 'src' and 'dst'
+           columns, ensures that each pair (src, dst) is unique, confirms the
+           graph is undirected, and if a 'weight' column exists, verifies it
+           has a numeric data type.
+
+        Args:
+            edges : DataFrame
+                A PySpark DataFrame representing edges in a graph.
+
+        Returns:
+            None
+        """
+
         # Check type
         msg = 'edges must be a PySpark DataFrame.'
         assert isinstance(edges, DataFrame), msg
@@ -319,12 +354,14 @@ class GraphFeatures(BaseClass):
             .where(F.col('count') > 1)
             .count()
         )
-        msg = 'edges has mirrored edges. Directed graphs are not yet supported!'
+        msg = 'edges has mirrored edges. Directed graphs are not yet \
+            supported!'
         assert pairs_mirrored == 0, msg
 
         # Assert weight dtype
         if 'weight' in edges.columns:
-            msg = 'Column "weight" must be a float or an int. Received {} instead.'
+            msg = 'Column "weight" must be a float or an int. Received \
+                {} instead.'
             dtype = dict(edges.dtypes)['weight']
             assert dtype in (
                 'float', 'double', 'tinyint', 'smallint', 'int', 'bigint'
@@ -339,27 +376,28 @@ class GraphFeatures(BaseClass):
         checkpoint_dir: str = None,
         spark: SparkSession = None,
     ):
-        """Fetch all the neighbors of each node in a graph up to specific order.
+        """Fetch all the neighbors of each node in a graph up to specific
+           order.
 
         Args:
             edges : DataFrame
-                A Spark DataFrame containing the edges of the graph. It must contain
-                the columns 'src' and 'dst' corresponding to source and destination
-                nodes, respectively. An optional 'weight' column can be included; if
-                not present, it is assumed to be 1.
+                A Spark DataFrame containing the edges of the graph. It must
+                contain the columns 'src' and 'dst' corresponding to source
+                and destination nodes, respectively. An optional 'weight'
+                column can be included; if not present, it is assumed to be 1.
             order : int, optional
-                The order of neighbors to compute (e.g., 1 for immediate neighbors,
-                2 for neighbors of neighbors, etc.). It must be a positive integer.
-                Default is 1.
+                The order of neighbors to compute (e.g., 1 for immediate
+                neighbors, 2 for neighbors of neighbors, etc.). It must be a
+                positive integer. Default is 1.
             checkpoint : bool, optional
-                Whether to use Spark checkpointing to persist intermediate results.
-                Default is False.
+                Whether to use Spark checkpointing to persist intermediate
+                results. Default is False.
             checkpoint_dir : str, optional,
-                The directory to store checkpoint files if checkpointing is enabled.
-                Required if `checkpoint=True`. Default is None.
+                The directory to store checkpoint files if checkpointing is
+                enabled. Required if `checkpoint=True`. Default is None.
             spark : SparkSession, optional
-                The active Spark session. Required if `checkpoint=True`. Default is
-                None.
+                The active Spark session. Required if `checkpoint=True`.
+                Default is None.
 
         Returns:
             DataFrame
@@ -367,8 +405,8 @@ class GraphFeatures(BaseClass):
                 - 'id': The node ID.
                 - 'neigh': The ID of a neighboring node.
                 - 'weight': The computed weight of the edge connecting 'id' to
-                'neigh', normalized by the total weight of all edges originating
-                from 'id'.
+                'neigh', normalized by the total weight of all edges
+                originating from 'id'.
 
         Notes:
             - Self-loops are removed when calculating weighted aggregations.
@@ -385,7 +423,7 @@ class GraphFeatures(BaseClass):
                 f"order={order} may cause the process to be slow."
             )
 
-        # Fetch first-degree neighbors (preserve self-loops for weighted degree)
+        # Fetch 1st-degree neighbors (preserve self-loops for weighted degree)
         ret = (
             edges
             .unionByName(

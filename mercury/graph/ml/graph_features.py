@@ -22,13 +22,13 @@ if pyspark_installed:
 
 # Main class to be fitted
 class GraphFeatures(BaseClass):
-    """Aggregate attributes from neighboring nodes.
+    """Generate features from neighboring nodes.
 
         Args:
             attributes : str or List[str], optional
                 The node attributes used to generate features. These strings
-                must be valid column names in 'vertices'. If None, all columns
-                except for 'id' are used. Default is None.
+                must be valid column names in the graph's vertices'. If None,
+                all columns except for 'id' are used. Default is None.
             agg_funcs : str or List[str], optional
                 The aggregation function(s) to apply. Supported values are:
                 - "sum"
@@ -73,7 +73,6 @@ class GraphFeatures(BaseClass):
             checkpoint_dir: str = None,
             spark: SparkSession = None,
     ):
-
         self.attributes = attributes
         self.agg_funcs = agg_funcs
         self.order = order
@@ -90,11 +89,11 @@ class GraphFeatures(BaseClass):
         """Fit the GraphFeatures object to generate graph-based features.
 
         Args:
-            g (Graph): A mercury graph structure.
+            g (Graph): A mercury graph object (mercury.graph.core.graph.Graph).
 
         Returns:
             (self): Fitted self with 'node_features_' attribute (or raises an
-                    error).
+                error).
         """
 
         # Get parameters

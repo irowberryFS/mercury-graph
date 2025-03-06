@@ -61,6 +61,16 @@ class GraphFeatures(BaseClass):
             include a 'weight' column. Weighted averages are computed as the
             product of attribute values and edge weights, normalized by the
             total weight.
+            - Loops back to oneself are excluded (e.g., 0 -> 1 -> 0).
+
+        Examples:
+            >>> g = Graph(data=edges, nodes=vertices, keys={"directed": False})
+            >>> gf = GraphFeatures(
+            ...     attributes=["feature1", "feature2"],  # Valid names in `vertices`
+            ...     agg_funcs=["min", "max", "avg"]
+            ... )
+            >>> gf.fit(g)  # Adds `node_features_` attribute to `gf`
+            >>> gf.node_features_.show(5)  # Display new graph features
         """
 
     def __init__(

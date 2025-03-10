@@ -407,8 +407,10 @@ def test_aggregate_messages_aggf_warns(
             "weight": "weight",
             }
         )
-    msg = 'Invalid aggregation function. Please provide one or more of ' \
+    msg = (
+        'Invalid aggregation function. Please provide one or more of '
         'the following valid options: "sum", "min", "max", "avg" or "wavg".'
+    )
     if expected_error == 'yes':
         with pytest.raises(AssertionError, match=msg):
             gf = GraphFeatures(agg_funcs=functions)

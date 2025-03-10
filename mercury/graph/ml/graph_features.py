@@ -138,15 +138,15 @@ class GraphFeatures(BaseClass):
             assert all(isinstance(item, str) for item in attributes), msg
             msg = 'All items in attributes must exist in vertices.'
             assert all(item in vertices.columns for item in attributes), msg
-            msg = 'attributes must only contain attributes ("id" was \
-                detected).'
+            msg = 'attributes must only contain attributes ("id" was detected).'
             assert 'id' not in attributes, msg
 
         # Verify aggregation functions
         agg_funcs = [agg_funcs] if isinstance(agg_funcs, str) else agg_funcs
-        msg = 'Invalid aggregation function. Please provide one or more of ' \
-            'the following valid options: "sum", "min", "max", "avg" or \
-            "wavg".'
+        msg = (
+            'Invalid aggregation function. Please provide one or more of the following '
+            'valid options: "sum", "min", "max", "avg" or "wavg".'
+        )
         assert all([func in _agg_dict.keys() for func in agg_funcs]), msg
 
         # Verify vertices
@@ -164,13 +164,11 @@ class GraphFeatures(BaseClass):
                 'spark must be provided when checkpoint is True.'
             )
             assert isinstance(checkpoint_dir, str), (
-                f'Invalid type for checkpoint_dir: expected str (a valid \
-                path), but'
-                f' got {type(checkpoint_dir).__name__} instead.'
+                'Invalid type for checkpoint_dir: expected str (a valid path), but got'
+                f' {type(checkpoint_dir).__name__} instead.'
             )
             assert isinstance(spark, SparkSession), (
-                f'Invalid type for spark: expected SparkSession instance, \
-                but got '
+                'Invalid type for spark: expected SparkSession instance, but got '
                 f'{type(spark).__name__} instead.'
             )
 
@@ -363,14 +361,12 @@ class GraphFeatures(BaseClass):
             .where(F.col('count') > 1)
             .count()
         )
-        msg = 'edges has mirrored edges. Directed graphs are not yet \
-            supported!'
+        msg = 'edges has mirrored edges. Directed graphs are not yet supported!'
         assert pairs_mirrored == 0, msg
 
         # Assert weight dtype
         if 'weight' in edges.columns:
-            msg = 'Column "weight" must be a float or an int. Received \
-                {} instead.'
+            msg = 'Column "weight" must be a float or an int. Received {} instead.'
             dtype = dict(edges.dtypes)['weight']
             assert dtype in (
                 'float', 'double', 'tinyint', 'smallint', 'int', 'bigint'

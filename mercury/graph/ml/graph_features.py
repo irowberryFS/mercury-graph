@@ -25,11 +25,11 @@ class GraphFeatures(BaseClass):
     """Generate features from neighboring nodes.
 
         Args:
-            attributes : str or List[str], optional
+            attributes (str or List[str], optional):
                 The node attributes used to generate features. These strings
                 must be valid column names in the graph's vertices'. If None,
                 all columns except for 'id' are used. Default is None.
-            agg_funcs : str or List[str], optional
+            agg_funcs (str or List[str], optional):
                 The aggregation function(s) to apply. Supported values are:
                 - "sum"
                 - "min"
@@ -37,20 +37,20 @@ class GraphFeatures(BaseClass):
                 - "avg"
                 - "wavg"
                 Default is "avg".
-            order : int, optional
+            order (int, optional):
                 The order of neighbors to compute (e.g., 1 for immediate
                 neighbors, 2 for neighbors of neighbors, etc.). It must be a
                 positive integer. Default is 1.
-            verify : bool, optional
+            verify (bool, optional):
                 Whether to validate the provided parameters before executing
                 the algorithm. Default is False.
-            checkpoint : bool, optional
+            checkpoint (bool, optional):
                 Whether to use Spark checkpointing to persist intermediate
                 results. Default is False.
-            checkpoint_dir : str, optional,
+            checkpoint_dir (str, optional):
                 The directory to store checkpoint files if checkpointing is
                 enabled. Required if `checkpoint=True`. Default is None.
-            spark : SparkSession, optional
+            spark (SparkSession, optional):
                 The active Spark session. Required if `checkpoint=True`.
                 Default is None.
 

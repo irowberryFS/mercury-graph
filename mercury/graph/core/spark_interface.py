@@ -1,4 +1,5 @@
 import importlib.util
+import tempfile
 
 pyspark_installed = False
 graphframes_installed = False
@@ -70,7 +71,8 @@ class SparkInterface:
             else:
                 SparkInterface._spark_session = self._create_spark_session(config)
                 # Set checkpoint directory
-                SparkInterface._spark_session.sparkContext.setCheckpointDir(".checkpoint")
+                checkpoint_dir = tempfile.mkdtemp()
+                SparkInterface._spark_session.sparkContext.setCheckpointDir(checkpoint_dir)
 
         if SparkInterface._graphframes is None and graphframes_installed:
             SparkInterface._graphframes = gf

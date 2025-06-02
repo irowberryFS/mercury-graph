@@ -1,5 +1,7 @@
 ::: mercury.graph.ml.LouvainCommunities
 
+::: mercury.graph.ml.LeidenCommunities
+
 ::: mercury.graph.ml.SparkRandomWalker
 
 ::: mercury.graph.ml.SparkSpreadingActivation

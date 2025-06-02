@@ -2101,7 +2101,7 @@ wheels = [
 
 [[package]]
 name = "mercury-graph"
-version = "3.2.6"
+version = "3.2.7"
 source = { editable = "." }
 dependencies = [
     { name = "anywidget" },

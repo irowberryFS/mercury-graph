@@ -776,7 +776,7 @@ class LeidenCommunities(BaseClass):
         refined_to_original = refined.select("refined_c", "c").distinct()
         
         # Return the refined partition
-        return refined.select("id", "refined_c as c")
+        return refined.selectExpr("id", "refined_c as c")
 
     def _sort_passes(self, res) -> list:
         """Takes the output of `LeidenCommunities` and returns a list containing
